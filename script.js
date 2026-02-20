@@ -21,15 +21,14 @@ const tilesContainer = document.getElementById("tiles-container");
 
 // --- Güvenlik: Input validation ---
 
+// Türkçe alfabe: a b c ç d e f g ğ h ı i j k l m n o ö p r s ş t u ü v y z
 function sadeceHarfMi(str) {
-  // Türkçe harfler dahil sadece harf karakterlerine izin ver
-  return /^[a-zA-ZçğıöşüÇĞIİÖŞÜ]+$/.test(str);
-}
-
-function temizleInput(str) {
-  // Sadece harf karakterlerini al, diğerlerini temizle
-  return str.replace(/[^a-zA-ZçğıöşüÇĞIİÖŞÜ]/g, "").toLowerCase();
-}
+    return /^[abcçdefgğhıijklmnoöprsştuüvyzABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ]+$/.test(str);
+  }
+  
+  function temizleInput(str) {
+    return str.replace(/[^abcçdefgğhıijklmnoöprsştuüvyzABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ]/g, "").toLowerCase();
+  }
 
 // --- Kelimeleri yükle ---
 
@@ -144,11 +143,11 @@ guessInput.addEventListener("input", renderTilesFromGuess);
 
 // Güvenlik: Klavye ile özel karakter girişini engelle
 guessInput.addEventListener("keypress", (e) => {
-  const char = String.fromCharCode(e.which || e.keyCode);
-  if (!/[a-zA-ZçğıöşüÇĞIİÖŞÜ]/.test(char)) {
-    e.preventDefault();
-  }
-});
+    const char = String.fromCharCode(e.which || e.keyCode);
+    if (!/[abcçdefgğhıijklmnoöprsştuüvyzABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ]/.test(char)) {
+      e.preventDefault();
+    }
+  });
 
 // --- Wordle mantığı ---
 

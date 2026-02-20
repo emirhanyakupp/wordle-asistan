@@ -10,6 +10,7 @@ let knownPositions = Array(5).fill(null);
 let cannotBeAt = Array.from({ length: 5 }, () => new Set());
 let requiredLetters = new Set();
 let excludedLetters = new Set();
+let history = [];
 
 const statusEl = document.getElementById("status");
 const formEl = document.getElementById("guess-form");
@@ -18,6 +19,7 @@ const resetBtn = document.getElementById("reset-btn");
 const summaryEl = document.getElementById("summary");
 const wordListEl = document.getElementById("word-list");
 const tilesContainer = document.getElementById("tiles-container");
+const historyListEl = document.getElementById("history-list");
 
 // --- Güvenlik: Input validation ---
 
@@ -237,6 +239,44 @@ function recomputeCandidates(guess, feedback) {
   candidates = candidates.filter((w) => matches(w));
 }
 
+function addToHistory(guess, feedback) {
+  history.push({ guess, feedback });
+
+  if (!historyListEl) return;
+  historyListEl.innerHTML = "";
+
+  history.forEach(({ guess, feedback }) => {
+    const li = document.createElement("li");
+
+    const row = document.createElement("div");
+    row.className = "history-row";
+
+    const wordSpan = document.createElement("div");
+    wordSpan.className = "history-word";
+    wordSpan.textContent = guess.toUpperCase();
+
+    const tilesWrap = document.createElement("div");
+    tilesWrap.className = "history-tiles";
+
+    [...guess].forEach((ch, i) => {
+      const fb = feedback[i];
+      const tile = document.createElement("div");
+      tile.className = "history-tile";
+
+      if (fb === "s") tile.classList.add("history-tile-yellow");
+      else if (fb === "y") tile.classList.add("history-tile-green");
+
+      tile.textContent = ch.toUpperCase();
+      tilesWrap.appendChild(tile);
+    });
+
+    row.appendChild(wordSpan);
+    row.appendChild(tilesWrap);
+    li.appendChild(row);
+    historyListEl.appendChild(li);
+  });
+}
+
 function updateResults(lastFeedback) {
   wordListEl.innerHTML = "";
 
@@ -323,6 +363,7 @@ if (!sadeceHarfMi(guess)) {
 
   recomputeCandidates(guess, feedback);
   updateResults(feedback);
+  addToHistory(guess, feedback);
 
   guessInput.value = "";
   tilesContainer.innerHTML = "";
@@ -337,6 +378,10 @@ resetBtn.addEventListener("click", () => {
   candidates = [...allWords];
   tilesContainer.innerHTML = "";
   summaryEl.textContent = "Filtreler sıfırlandı.";
+  history = [];
+  if (historyListEl) {
+    historyListEl.innerHTML = "";
+  }
   updateResults();
 });
 

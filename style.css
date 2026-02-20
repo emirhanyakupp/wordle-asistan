@@ -113,17 +113,89 @@ body {
   }
   
   #word-list {
-    list-style: none;
-    padding-left: 0;
-    max-height: 260px;
-    overflow-y: auto;
-    margin: 0;
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 6px;
   }
   
   #word-list li {
-    padding: 2px 0;
-    font-size: 14px;
-    font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: rgba(31, 41, 55, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  color: #e5e7eb;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  }
+  #word-list li:hover {
+  background: rgba(55, 65, 81, 1);
+  border-color: rgba(209, 213, 219, 0.7);
+  }
+
+  #history-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 8px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+  }
+
+  .history-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  }
+
+  .history-word {
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 14px;
+  color: #e5e7eb;
+  }
+
+  .history-tiles {
+  display: flex;
+  gap: 4px;
+  }
+
+  .history-tile {
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  border: 1px solid #4b5563;
+  background: #111827;
+  color: #e5e7eb;
+  }
+
+  .history-tile-yellow {
+  background: #ca8a04;
+  border-color: #facc15;
+  color: #022c22;
+  }
+
+  .history-tile-green {
+  background: #16a34a;
+  border-color: #22c55e;
+  color: #022c22;
   }
   .tiles {
     display: flex;
@@ -169,4 +241,56 @@ body {
     background: #16a34a;
     border-color: #22c55e;
     color: #022c22;
+  }
+
+  @media (max-width: 640px) {
+  body {
+    font-size: 14px;
+  }
+
+  .container {
+    max-width: 100%;
+    margin: 12px auto;
+    padding: 16px 14px 20px;
+    border-radius: 0;
+  }
+
+  h1 {
+    font-size: 22px;
+  }
+
+  .desc {
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  .buttons {
+    flex-direction: column;
+  }
+
+  button {
+    font-size: 13px;
+    padding: 8px 0;
+  }
+
+  .tile {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+  }
+
+  .history-tile {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+  }
+
+  #word-list {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    max-height: 200px;
+  }
+
+  #history-list {
+    max-height: 150px;
+  }
   }

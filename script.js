@@ -286,12 +286,24 @@ formEl.addEventListener("submit", (e) => {
   guess = temizleInput(guess);
   
   // Hem uzunluk hem de alfabe kontrolü tek yerde
-  if (guess.length !== 5 || !sadeceHarfMi(guess)) {
-    alert("Tahmin tam 5 harfli ve sadece Türkçe harflerden oluşmalı.");
-    guessInput.value = "";
-    tilesContainer.innerHTML = "";
-    return;
-  }
+  // Güvenlik: Input temizleme
+guess = temizleInput(guess);
+
+// 1) Uzunluk kontrolü
+if (guess.length !== 5) {
+  alert("Tahmin tam 5 harfli olmalı.");
+  guessInput.value = "";
+  tilesContainer.innerHTML = "";
+  return;
+}
+
+// 2) Alfabe (Türkçe harf) kontrolü
+if (!sadeceHarfMi(guess)) {
+  alert("Tahmin sadece Türkçe harflerden oluşmalı.");
+  guessInput.value = "";
+  tilesContainer.innerHTML = "";
+  return;
+}
   // Tahmine göre kutuları oluşturulmamışsa oluştur
   if (!tilesContainer.querySelector(".tile")) {
     renderTilesFromGuess();

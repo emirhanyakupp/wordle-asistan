@@ -31,12 +31,12 @@ const KEYBOARD_ROWS = [
 
 // Türkçe alfabe: a b c ç d e f g ğ h ı i j k l m n o ö p r s ş t u ü v y z
 function sadeceHarfMi(str) {
-    return /^[abcçdefgğhıijklmnoöprsştuüvyzABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ]+$/.test(str);
-  }
-  
-  function temizleInput(str) {
-    return str.replace(/[^abcçdefgğhıijklmnoöprsştuüvyzABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ]/g, "").toLowerCase();
-  }
+  return /^[abcçdefgğhıijklmnoöprsştuüvyzABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ]+$/.test(str);
+}
+
+function temizleInput(str) {
+  return str.replace(/[^abcçdefgğhıijklmnoöprsştuüvyzABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ]/g, "").toLowerCase();
+}
 
 // --- Kelimeleri yükle ---
 
@@ -236,6 +236,7 @@ guessInput.addEventListener("keypress", (e) => {
     }
   }
 });
+
 // --- Wordle mantığı ---
 
 function matches(word) {
@@ -361,24 +362,11 @@ function updateResults(lastFeedback) {
 
   const hepsiGri = lastFeedback && [...lastFeedback].every((c) => c === "g");
 
+  // Temizlenmiş ve tek döngüye düşürülmüş liste oluşturma bölümü
   if (hepsiGri && candidates.length > ESIK_TAM_LISTE) {
     summaryEl.textContent = `Tahmin tamamen gri ve ${candidates.length} aday kelime var. Örnek ilk ${ORNEK_SAYISI} gösteriliyor:`;
     const slice = candidates.slice(0, ORNEK_SAYISI);
     for (const w of slice) {
-        const li = document.createElement("li");
-        li.textContent = w;
-        
-        // YENİ EKLENEN KISIM: Kelimeye tıklama özelliği
-        li.addEventListener("click", () => {
-          guessInput.value = w; // Tıklanan kelimeyi inputa yaz
-          renderTilesFromGuess(); // Renk seçeceğimiz kutucukları oluştur
-          
-          // İsteğe bağlı: Mobilde uzun bir listeden tıkladığında ekranı yukarı, inputun olduğu yere kaydırır
-          document.querySelector(".container").scrollIntoView({ behavior: "smooth" });
-        });
-  
-        wordListEl.appendChild(li);
-      } for (const w of slice) {
       const li = document.createElement("li");
       li.textContent = w;
       wordListEl.appendChild(li);
@@ -387,20 +375,10 @@ function updateResults(lastFeedback) {
     const maxShow = 200;
     const slice = candidates.slice(0, maxShow);
     for (const w of slice) {
-        const li = document.createElement("li");
-        li.textContent = w;
-        
-        // YENİ EKLENEN KISIM: Kelimeye tıklama özelliği
-        li.addEventListener("click", () => {
-          guessInput.value = w; // Tıklanan kelimeyi inputa yaz
-          renderTilesFromGuess(); // Renk seçeceğimiz kutucukları oluştur
-          
-          // İsteğe bağlı: Mobilde uzun bir listeden tıkladığında ekranı yukarı, inputun olduğu yere kaydırır
-          document.querySelector(".container").scrollIntoView({ behavior: "smooth" });
-        });
-  
-        wordListEl.appendChild(li);
-      }
+      const li = document.createElement("li");
+      li.textContent = w;
+      wordListEl.appendChild(li);
+    }
 
     if (candidates.length > maxShow) {
       summaryEl.textContent = `Toplam ${candidates.length} kelime, ilk ${maxShow} gösteriliyor.`;
@@ -415,32 +393,26 @@ function updateResults(lastFeedback) {
 formEl.addEventListener("submit", (e) => {
   e.preventDefault();
 
-
   // Güvenlik: Input temizleme ve validation
   let guess = guessInput.value.trim().toLowerCase();
-
-  // Güvenlik: Input temizleme
   guess = temizleInput(guess);
-  
-  // Hem uzunluk hem de alfabe kontrolü tek yerde
-  // Güvenlik: Input temizleme
-guess = temizleInput(guess);
 
-// 1) Uzunluk kontrolü
-if (guess.length !== 5) {
-  alert("Tahmin tam 5 harfli olmalı.");
-  guessInput.value = "";
-  tilesContainer.innerHTML = "";
-  return;
-}
+  // 1) Uzunluk kontrolü
+  if (guess.length !== 5) {
+    alert("Tahmin tam 5 harfli olmalı.");
+    guessInput.value = "";
+    tilesContainer.innerHTML = "";
+    return;
+  }
 
-// 2) Alfabe (Türkçe harf) kontrolü
-if (!sadeceHarfMi(guess)) {
-  alert("Tahmin sadece Türkçe harflerden oluşmalı.");
-  guessInput.value = "";
-  tilesContainer.innerHTML = "";
-  return;
-}
+  // 2) Alfabe (Türkçe harf) kontrolü
+  if (!sadeceHarfMi(guess)) {
+    alert("Tahmin sadece Türkçe harflerden oluşmalı.");
+    guessInput.value = "";
+    tilesContainer.innerHTML = "";
+    return;
+  }
+
   // Tahmine göre kutuları oluşturulmamışsa oluştur
   if (!tilesContainer.querySelector(".tile")) {
     renderTilesFromGuess();
@@ -474,6 +446,7 @@ resetBtn.addEventListener("click", () => {
   excludedLetters = new Set();
   candidates = [...allWords];
   tilesContainer.innerHTML = "";
+  guessInput.value = "";
   summaryEl.textContent = "Filtreler sıfırlandı.";
   history = [];
   if (historyListEl) {
@@ -487,3 +460,12 @@ loadWords();
 
 // Sanal klavyeyi oluştur
 renderVirtualKeyboard();
+
+// Tıklanan kelimeyi otomatik doldurmak için Event Delegation
+wordListEl.addEventListener("click", (e) => {
+  if (e.target.tagName === "LI") {
+    guessInput.value = e.target.textContent.toLowerCase();
+    renderTilesFromGuess();
+    document.querySelector(".container").scrollIntoView({ behavior: "smooth" });
+  }
+});

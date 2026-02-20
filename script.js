@@ -278,23 +278,20 @@ function updateResults(lastFeedback) {
 formEl.addEventListener("submit", (e) => {
   e.preventDefault();
 
-  let guess = guessInput.value.trim().toLowerCase();
 
   // Güvenlik: Input temizleme ve validation
+  let guess = guessInput.value.trim().toLowerCase();
+
+  // Güvenlik: Input temizleme
   guess = temizleInput(guess);
-
-  if (guess.length !== 5) {
-    alert("Tahmin tam 5 harfli olmalı.");
+  
+  // Hem uzunluk hem de alfabe kontrolü tek yerde
+  if (guess.length !== 5 || !sadeceHarfMi(guess)) {
+    alert("Tahmin tam 5 harfli ve sadece Türkçe harflerden oluşmalı.");
     guessInput.value = "";
+    tilesContainer.innerHTML = "";
     return;
   }
-
-  if (!sadeceHarfMi(guess)) {
-    alert("Tahmin sadece harf karakterleri içermeli.");
-    guessInput.value = "";
-    return;
-  }
-
   // Tahmine göre kutuları oluşturulmamışsa oluştur
   if (!tilesContainer.querySelector(".tile")) {
     renderTilesFromGuess();

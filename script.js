@@ -1,6 +1,7 @@
 const KELIME_DOSYASI = "wordle_havuz.txt";
 const ESIK_TAM_LISTE = 500;
 const ORNEK_SAYISI = 50;
+const MAX_DOSYA_BOYUTU = 10 * 1024 * 1024; // 10MB limit
 
 let allWords = [];
 let candidates = [];
@@ -18,16 +19,48 @@ const summaryEl = document.getElementById("summary");
 const wordListEl = document.getElementById("word-list");
 const tilesContainer = document.getElementById("tiles-container");
 
+// --- Güvenlik: Input validation ---
+
+function sadeceHarfMi(str) {
+  // Türkçe harfler dahil sadece harf karakterlerine izin ver
+  return /^[a-zA-ZçğıöşüÇĞIİÖŞÜ]+$/.test(str);
+}
+
+function temizleInput(str) {
+  // Sadece harf karakterlerini al, diğerlerini temizle
+  return str.replace(/[^a-zA-ZçğıöşüÇĞIİÖŞÜ]/g, "").toLowerCase();
+}
+
 // --- Kelimeleri yükle ---
 
 async function loadWords() {
   try {
     const res = await fetch(KELIME_DOSYASI);
+
+    // Dosya boyutu kontrolü (header üzerinden)
+    const contentLength = res.headers.get("content-length");
+    if (contentLength && parseInt(contentLength) > MAX_DOSYA_BOYUTU) {
+      statusEl.textContent = "Kelime havuzu çok büyük. Lütfen daha küçük bir dosya kullanın.";
+      return;
+    }
+
     const text = await res.text();
+
+    // Dosya boyutu kontrolü (içerik üzerinden)
+    if (text.length > MAX_DOSYA_BOYUTU) {
+      statusEl.textContent = "Kelime havuzu çok büyük. Lütfen daha küçük bir dosya kullanın.";
+      return;
+    }
+
     allWords = text
       .split("\n")
       .map((w) => w.trim().toLowerCase())
-      .filter((w) => w.length === 5 && !w.includes(" "));
+      .filter((w) => w.length === 5 && !w.includes(" ") && sadeceHarfMi(w));
+
+    if (allWords.length === 0) {
+      statusEl.textContent = "Kelime havuzu boş veya geçersiz.";
+      return;
+    }
 
     candidates = [...allWords];
     statusEl.textContent = `Toplam ${allWords.length} kelime yüklendi.`;
@@ -51,6 +84,7 @@ function updateTileClass(tile) {
 function createTile(letter, index) {
   const div = document.createElement("div");
   div.className = "tile tile-grey";
+  // Güvenlik: textContent kullan (XSS koruması)
   div.textContent = letter.toUpperCase();
   div.dataset.index = String(index);
   div.dataset.state = "0"; // 0=g,1=s,2=y
@@ -66,10 +100,24 @@ function createTile(letter, index) {
 }
 
 function renderTilesFromGuess() {
-  const guess = guessInput.value.trim().toLowerCase();
+  let guess = guessInput.value.trim();
+
+  // Güvenlik: Input temizleme
+  guess = temizleInput(guess);
+
+  // Input'u güncelle (kullanıcı özel karakter girerse temizlenmiş halini görsün)
+  if (guessInput.value.trim() !== guess) {
+    guessInput.value = guess;
+  }
+
   tilesContainer.innerHTML = "";
 
   if (guess.length !== 5) return;
+
+  // Güvenlik: Her karakterin harf olduğundan emin ol
+  if (!sadeceHarfMi(guess)) {
+    return;
+  }
 
   [...guess].forEach((ch, idx) => {
     const tile = createTile(ch, idx);
@@ -93,6 +141,14 @@ function tilesToFeedback() {
 
 // Tahmin yazıldıkça kutuları güncelle
 guessInput.addEventListener("input", renderTilesFromGuess);
+
+// Güvenlik: Klavye ile özel karakter girişini engelle
+guessInput.addEventListener("keypress", (e) => {
+  const char = String.fromCharCode(e.which || e.keyCode);
+  if (!/[a-zA-ZçğıöşüÇĞIİÖŞÜ]/.test(char)) {
+    e.preventDefault();
+  }
+});
 
 // --- Wordle mantığı ---
 
@@ -126,6 +182,15 @@ function matches(word) {
 function updateConstraints(guess, feedback) {
   guess = guess.toLowerCase();
   feedback = feedback.toLowerCase();
+
+  // Güvenlik: Input validation
+  if (!sadeceHarfMi(guess) || guess.length !== 5) {
+    return;
+  }
+
+  if (!/^[gsy]{5}$/.test(feedback)) {
+    return;
+  }
 
   // Önce sarı/yeşil
   for (let i = 0; i < 5; i++) {
@@ -202,9 +267,20 @@ function updateResults(lastFeedback) {
 formEl.addEventListener("submit", (e) => {
   e.preventDefault();
 
-  const guess = guessInput.value.trim().toLowerCase();
+  let guess = guessInput.value.trim().toLowerCase();
+
+  // Güvenlik: Input temizleme ve validation
+  guess = temizleInput(guess);
+
   if (guess.length !== 5) {
-    alert("Tahmin 5 harfli olmalı.");
+    alert("Tahmin tam 5 harfli olmalı.");
+    guessInput.value = "";
+    return;
+  }
+
+  if (!sadeceHarfMi(guess)) {
+    alert("Tahmin sadece harf karakterleri içermeli.");
+    guessInput.value = "";
     return;
   }
 
@@ -216,6 +292,12 @@ formEl.addEventListener("submit", (e) => {
   const feedback = tilesToFeedback();
   if (!feedback || feedback.length !== 5) {
     alert("Lütfen her harfin kutusunda gri / sarı / yeşil durumunu tıklayarak seç.");
+    return;
+  }
+
+  // Güvenlik: Feedback validation
+  if (!/^[gsy]{5}$/.test(feedback)) {
+    alert("Geri bildirim geçersiz.");
     return;
   }
 

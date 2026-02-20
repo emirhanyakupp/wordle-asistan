@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Wordle Asistan</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Wordle Asistan</h1>
+    <p class="desc">
+      5 harfli tahminini yaz, her harfin kutusuna tıklayarak gri / sarı / yeşil durumunu seç.
+    </p>
+
+    <div class="status" id="status">Kelime havuzu yükleniyor...</div>
+
+    <form id="guess-form">
+      <div class="field">
+        <label for="guess"><strong>Tahmin</strong> (5 harf):</label>
+        <input id="guess" type="text" maxlength="5" required />
+      </div>
+
+      <div class="field">
+        <label>
+          <strong>Geri bildirim</strong> (kutulara tıklayarak seç):
+        </label>
+        <div id="tiles-container" class="tiles"></div>
+      </div>
+
+      <div class="buttons">
+        <button type="submit">Ekle ve Filtrele</button>
+        <button type="button" id="reset-btn">Sıfırla</button>
+      </div>
+    </form>
+
+    <div class="results">
+      <h2>Olası Kelimeler</h2>
+      <div id="summary"></div>
+      <ul id="word-list"></ul>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

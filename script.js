@@ -143,6 +143,14 @@ function tilesToFeedback() {
 // Tahmin yazıldıkça kutuları güncelle
 guessInput.addEventListener("input", renderTilesFromGuess);
 
+// Enter'a basınca formu gönder
+guessInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    formEl.requestSubmit();
+  }
+});
+
 // Güvenlik: Klavye ile özel karakter girişini engelle
 let invalidCharWarningShown = false;
 
@@ -159,7 +167,7 @@ guessInput.addEventListener("keypress", (e) => {
       alert("Sadece Türkçe harf kullanabilirsin (a–z ve ç, ğ, ı, i, ö, ş, ü).");
       setTimeout(() => {
         invalidCharWarningShown = false;
-      }, 1000); // 1 saniye içinde tekrar aynı uyarıyı gösterme
+      }, 1000);
     }
   }
 });

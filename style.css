@@ -291,6 +291,27 @@ body {
   font-size: 11px;
   }
 
+  /* --- YENİ EKLENEN: SANAL KLAVYE RENK DURUMLARI --- */
+  .vk-key.vk-grey {
+    background: #374151;
+    border-color: #1f2937;
+    color: #9ca3af;
+    opacity: 0.6;
+  }
+
+  .vk-key.vk-yellow {
+    background: #ca8a04;
+    border-color: #facc15;
+    color: #022c22;
+  }
+
+  .vk-key.vk-green {
+    background: #16a34a;
+    border-color: #22c55e;
+    color: #022c22;
+  }
+
+  /* Mobil Uyum (Media Query) */
   @media (max-width: 640px) {
   body {
     font-size: 14px;

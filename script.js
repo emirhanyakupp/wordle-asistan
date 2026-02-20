@@ -12,6 +12,8 @@ let requiredLetters = new Set();
 let excludedLetters = new Set();
 let history = [];
 
+let letterStates = {}; // Klavyedeki harflerin son durumunu tutacak obje
+
 const statusEl = document.getElementById("status");
 const formEl = document.getElementById("guess-form");
 const guessInput = document.getElementById("guess");
@@ -28,8 +30,6 @@ const KEYBOARD_ROWS = [
 ];
 
 // --- Güvenlik: Input validation ---
-
-// Türkçe alfabe: a b c ç d e f g ğ h ı i j k l m n o ö p r s ş t u ü v y z
 function sadeceHarfMi(str) {
   return /^[abcçdefgğhıijklmnoöprsştuüvyzABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ]+$/.test(str);
 }
@@ -39,21 +39,15 @@ function temizleInput(str) {
 }
 
 // --- Kelimeleri yükle ---
-
 async function loadWords() {
   try {
     const res = await fetch(KELIME_DOSYASI);
-
-    // Dosya boyutu kontrolü (header üzerinden)
     const contentLength = res.headers.get("content-length");
     if (contentLength && parseInt(contentLength) > MAX_DOSYA_BOYUTU) {
       statusEl.textContent = "Kelime havuzu çok büyük. Lütfen daha küçük bir dosya kullanın.";
       return;
     }
-
     const text = await res.text();
-
-    // Dosya boyutu kontrolü (içerik üzerinden)
     if (text.length > MAX_DOSYA_BOYUTU) {
       statusEl.textContent = "Kelime havuzu çok büyük. Lütfen daha küçük bir dosya kullanın.";
       return;
@@ -79,22 +73,20 @@ async function loadWords() {
 }
 
 // --- Tile (kare) mantığı ---
-
 function updateTileClass(tile) {
   tile.classList.remove("tile-grey", "tile-yellow", "tile-green");
   const state = Number(tile.dataset.state || "0");
-  if (state === 0) tile.classList.add("tile-grey");     // gri
-  else if (state === 1) tile.classList.add("tile-yellow"); // sarı
-  else tile.classList.add("tile-green");                // yeşil
+  if (state === 0) tile.classList.add("tile-grey");     
+  else if (state === 1) tile.classList.add("tile-yellow"); 
+  else tile.classList.add("tile-green");                
 }
 
 function createTile(letter, index) {
   const div = document.createElement("div");
   div.className = "tile tile-grey";
-  // Güvenlik: textContent kullan (XSS koruması)
   div.textContent = letter.toUpperCase();
   div.dataset.index = String(index);
-  div.dataset.state = "0"; // 0=g,1=s,2=y
+  div.dataset.state = "0"; 
 
   div.addEventListener("click", () => {
     let state = Number(div.dataset.state || "0");
@@ -108,11 +100,8 @@ function createTile(letter, index) {
 
 function renderTilesFromGuess() {
   let guess = guessInput.value.trim();
-
-  // Güvenlik: Input temizleme
   guess = temizleInput(guess);
 
-  // Input'u güncelle (kullanıcı özel karakter girerse temizlenmiş halini görsün)
   if (guessInput.value.trim() !== guess) {
     guessInput.value = guess;
   }
@@ -120,11 +109,7 @@ function renderTilesFromGuess() {
   tilesContainer.innerHTML = "";
 
   if (guess.length !== 5) return;
-
-  // Güvenlik: Her karakterin harf olduğundan emin ol
-  if (!sadeceHarfMi(guess)) {
-    return;
-  }
+  if (!sadeceHarfMi(guess)) return;
 
   [...guess].forEach((ch, idx) => {
     const tile = createTile(ch, idx);
@@ -167,6 +152,7 @@ function renderVirtualKeyboard() {
       key.type = "button";
       key.className = "vk-key";
       key.textContent = letter.toUpperCase();
+      key.dataset.key = letter; 
       key.addEventListener("click", () => handleVirtualKey(letter));
       row.appendChild(key);
     });
@@ -216,53 +202,36 @@ guessInput.addEventListener("keydown", (e) => {
   }
 });
 
-// Güvenlik: Klavye ile özel karakter girişini engelle
 let invalidCharWarningShown = false;
-
 guessInput.addEventListener("keypress", (e) => {
   const char = String.fromCharCode(e.which || e.keyCode);
-
-  // Sadece Türkçe harf kontrolü
   if (!/[abcçdefgğhıijklmnoöprsştuüvyzABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ]/.test(char)) {
     e.preventDefault();
-
-    // Uyarıyı her tuşta spam olmasın diye kısa süreliğe bir kez göster
     if (!invalidCharWarningShown) {
       invalidCharWarningShown = true;
       alert("Sadece Türkçe harf kullanabilirsin (a–z ve ç, ğ, ı, i, ö, ş, ü).");
-      setTimeout(() => {
-        invalidCharWarningShown = false;
-      }, 1000);
+      setTimeout(() => { invalidCharWarningShown = false; }, 1000);
     }
   }
 });
 
 // --- Wordle mantığı ---
-
 function matches(word) {
   word = word.toLowerCase();
 
-  // 1) Yeşiller
   for (let i = 0; i < 5; i++) {
     const ch = knownPositions[i];
     if (ch !== null && word[i] !== ch) return false;
   }
-
-  // 2) Bu pozisyonda olamayacak harfler
   for (let i = 0; i < 5; i++) {
     if (cannotBeAt[i].has(word[i])) return false;
   }
-
-  // 3) Gerekli harfler (sarı/yeşil)
   for (const h of requiredLetters) {
     if (!word.includes(h)) return false;
   }
-
-  // 4) Tamamen yasaklanan (gri) harfler
   for (const h of excludedLetters) {
     if (word.includes(h)) return false;
   }
-
   return true;
 }
 
@@ -270,20 +239,12 @@ function updateConstraints(guess, feedback) {
   guess = guess.toLowerCase();
   feedback = feedback.toLowerCase();
 
-  // Güvenlik: Input validation
-  if (!sadeceHarfMi(guess) || guess.length !== 5) {
-    return;
-  }
+  if (!sadeceHarfMi(guess) || guess.length !== 5) return;
+  if (!/^[gsy]{5}$/.test(feedback)) return;
 
-  if (!/^[gsy]{5}$/.test(feedback)) {
-    return;
-  }
-
-  // Önce sarı/yeşil
   for (let i = 0; i < 5; i++) {
     const harf = guess[i];
     const durum = feedback[i];
-
     if (durum === "y") {
       knownPositions[i] = harf;
       requiredLetters.add(harf);
@@ -293,11 +254,9 @@ function updateConstraints(guess, feedback) {
     }
   }
 
-  // Sonra gri
   for (let i = 0; i < 5; i++) {
     const harf = guess[i];
     const durum = feedback[i];
-
     if (durum === "g") {
       if (!requiredLetters.has(harf)) {
         excludedLetters.add(harf);
@@ -306,6 +265,35 @@ function updateConstraints(guess, feedback) {
       }
     }
   }
+}
+
+// Klavyedeki harflerin renklerini hesaplayıp ekrana yansıtan fonksiyon
+function updateKeyboardStates(guess, feedback) {
+  for (let i = 0; i < 5; i++) {
+    const char = guess[i].toLowerCase();
+    const fb = feedback[i];
+    const currentState = letterStates[char];
+
+    if (fb === "y") {
+      letterStates[char] = "y";
+    } else if (fb === "s" && currentState !== "y") {
+      letterStates[char] = "s";
+    } else if (fb === "g" && currentState !== "y" && currentState !== "s") {
+      letterStates[char] = "g";
+    }
+  }
+
+  const keys = document.querySelectorAll(".vk-key");
+  keys.forEach((key) => {
+    const char = key.dataset.key; 
+    if (char && letterStates[char]) {
+      key.classList.remove("vk-green", "vk-yellow", "vk-grey"); 
+      
+      if (letterStates[char] === "y") key.classList.add("vk-green");
+      else if (letterStates[char] === "s") key.classList.add("vk-yellow");
+      else if (letterStates[char] === "g") key.classList.add("vk-grey");
+    }
+  });
 }
 
 function recomputeCandidates(guess, feedback) {
@@ -321,7 +309,6 @@ function addToHistory(guess, feedback) {
 
   history.forEach(({ guess, feedback }) => {
     const li = document.createElement("li");
-
     const row = document.createElement("div");
     row.className = "history-row";
 
@@ -355,14 +342,12 @@ function updateResults(lastFeedback) {
   wordListEl.innerHTML = "";
 
   if (candidates.length === 0) {
-    summaryEl.textContent =
-      "Hiç uygun kelime kalmadı. Geri bildirimde hata olabilir.";
+    summaryEl.textContent = "Hiç uygun kelime kalmadı. Geri bildirimde hata olabilir.";
     return;
   }
 
   const hepsiGri = lastFeedback && [...lastFeedback].every((c) => c === "g");
 
-  // Temizlenmiş ve tek döngüye düşürülmüş liste oluşturma bölümü
   if (hepsiGri && candidates.length > ESIK_TAM_LISTE) {
     summaryEl.textContent = `Tahmin tamamen gri ve ${candidates.length} aday kelime var. Örnek ilk ${ORNEK_SAYISI} gösteriliyor:`;
     const slice = candidates.slice(0, ORNEK_SAYISI);
@@ -389,15 +374,12 @@ function updateResults(lastFeedback) {
 }
 
 // --- Eventler ---
-
 formEl.addEventListener("submit", (e) => {
   e.preventDefault();
 
-  // Güvenlik: Input temizleme ve validation
   let guess = guessInput.value.trim().toLowerCase();
   guess = temizleInput(guess);
 
-  // 1) Uzunluk kontrolü
   if (guess.length !== 5) {
     alert("Tahmin tam 5 harfli olmalı.");
     guessInput.value = "";
@@ -405,7 +387,6 @@ formEl.addEventListener("submit", (e) => {
     return;
   }
 
-  // 2) Alfabe (Türkçe harf) kontrolü
   if (!sadeceHarfMi(guess)) {
     alert("Tahmin sadece Türkçe harflerden oluşmalı.");
     guessInput.value = "";
@@ -413,7 +394,13 @@ formEl.addEventListener("submit", (e) => {
     return;
   }
 
-  // Tahmine göre kutuları oluşturulmamışsa oluştur
+  // --- YENİ EKLENEN SÖZLÜK KONTROLÜ ---
+  if (!allWords.includes(guess)) {
+    alert("Girdiğiniz kelime sözlükte bulunmuyor!");
+    return; // Kelime yoksa işlemi durdur
+  }
+  // ------------------------------------
+
   if (!tilesContainer.querySelector(".tile")) {
     renderTilesFromGuess();
   }
@@ -424,12 +411,12 @@ formEl.addEventListener("submit", (e) => {
     return;
   }
 
-  // Güvenlik: Feedback validation
   if (!/^[gsy]{5}$/.test(feedback)) {
     alert("Geri bildirim geçersiz.");
     return;
   }
 
+  updateKeyboardStates(guess, feedback);
   recomputeCandidates(guess, feedback);
   updateResults(feedback);
   addToHistory(guess, feedback);
@@ -444,7 +431,13 @@ resetBtn.addEventListener("click", () => {
   cannotBeAt = Array.from({ length: 5 }, () => new Set());
   requiredLetters = new Set();
   excludedLetters = new Set();
+  letterStates = {}; 
   candidates = [...allWords];
+  
+  document.querySelectorAll(".vk-key").forEach(key => {
+    key.classList.remove("vk-green", "vk-yellow", "vk-grey");
+  });
+
   tilesContainer.innerHTML = "";
   guessInput.value = "";
   summaryEl.textContent = "Filtreler sıfırlandı.";
@@ -457,8 +450,6 @@ resetBtn.addEventListener("click", () => {
 
 // Başlangıçta kelimeleri yükle
 loadWords();
-
-// Sanal klavyeyi oluştur
 renderVirtualKeyboard();
 
 // Tıklanan kelimeyi otomatik doldurmak için Event Delegation

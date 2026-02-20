@@ -238,9 +238,56 @@ body {
   }
   
   .tile-green {
-    background: #16a34a;
-    border-color: #22c55e;
-    color: #022c22;
+  background: #16a34a;
+  border-color: #22c55e;
+  color: #022c22;
+  }
+
+  .virtual-keyboard {
+  margin-top: 4px;
+  padding: 8px 6px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  }
+
+  .vk-row {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  }
+
+  .vk-key {
+  min-width: 26px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: #111827;
+  border: 1px solid #4b5563;
+  color: #e5e7eb;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.1s ease, transform 0.05s ease, border-color 0.1s ease;
+  }
+
+  .vk-key:hover {
+  background: #1f2937;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+  }
+
+  .vk-key.wide {
+  min-width: 52px;
+  }
+
+  .vk-key.backspace {
+  font-size: 11px;
   }
 
   @media (max-width: 640px) {
@@ -283,6 +330,21 @@ body {
     width: 22px;
     height: 22px;
     font-size: 11px;
+  }
+
+  .virtual-keyboard {
+    padding: 6px 4px;
+    gap: 4px;
+  }
+
+  .vk-key {
+    min-width: 24px;
+    padding: 5px 6px;
+    font-size: 12px;
+  }
+
+  .vk-key.wide {
+    min-width: 46px;
   }
 
   #word-list {

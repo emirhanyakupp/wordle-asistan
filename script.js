@@ -21,6 +21,12 @@ const wordListEl = document.getElementById("word-list");
 const tilesContainer = document.getElementById("tiles-container");
 const historyListEl = document.getElementById("history-list");
 
+const KEYBOARD_ROWS = [
+  ["e", "r", "t", "y", "u", "ı", "o", "p", "ğ", "ü"],
+  ["a", "s", "d", "f", "g", "h", "j", "k", "l", "ş", "i"],
+  ["z", "c", "v", "b", "n", "m", "ö", "ç"]
+];
+
 // --- Güvenlik: Input validation ---
 
 // Türkçe alfabe: a b c ç d e f g ğ h ı i j k l m n o ö p r s ş t u ü v y z
@@ -123,6 +129,65 @@ function renderTilesFromGuess() {
   [...guess].forEach((ch, idx) => {
     const tile = createTile(ch, idx);
     tilesContainer.appendChild(tile);
+  });
+}
+
+function handleVirtualKey(letter) {
+  let val = guessInput.value.trim().toLowerCase();
+  if (val.length >= 5) return;
+  val += letter;
+  guessInput.value = val;
+  renderTilesFromGuess();
+}
+
+function handleVirtualBackspace() {
+  let val = guessInput.value.trim().toLowerCase();
+  if (!val) return;
+  val = val.slice(0, -1);
+  guessInput.value = val;
+  renderTilesFromGuess();
+}
+
+function handleVirtualEnter() {
+  formEl.requestSubmit();
+}
+
+function renderVirtualKeyboard() {
+  const kb = document.getElementById("virtual-keyboard");
+  if (!kb) return;
+
+  kb.innerHTML = "";
+
+  KEYBOARD_ROWS.forEach((rowLetters, rowIndex) => {
+    const row = document.createElement("div");
+    row.className = "vk-row";
+
+    rowLetters.forEach((letter) => {
+      const key = document.createElement("button");
+      key.type = "button";
+      key.className = "vk-key";
+      key.textContent = letter.toUpperCase();
+      key.addEventListener("click", () => handleVirtualKey(letter));
+      row.appendChild(key);
+    });
+
+    if (rowIndex === KEYBOARD_ROWS.length - 1) {
+      const backspaceKey = document.createElement("button");
+      backspaceKey.type = "button";
+      backspaceKey.className = "vk-key wide backspace";
+      backspaceKey.textContent = "SİL";
+      backspaceKey.addEventListener("click", handleVirtualBackspace);
+      row.appendChild(backspaceKey);
+
+      const enterKey = document.createElement("button");
+      enterKey.type = "button";
+      enterKey.className = "vk-key wide";
+      enterKey.textContent = "ENTER";
+      enterKey.addEventListener("click", handleVirtualEnter);
+      row.appendChild(enterKey);
+    }
+
+    kb.appendChild(row);
   });
 }
 
@@ -395,3 +460,6 @@ resetBtn.addEventListener("click", () => {
 
 // Başlangıçta kelimeleri yükle
 loadWords();
+
+// Sanal klavyeyi oluştur
+renderVirtualKeyboard();

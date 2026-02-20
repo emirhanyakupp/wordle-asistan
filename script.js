@@ -142,13 +142,25 @@ function tilesToFeedback() {
 guessInput.addEventListener("input", renderTilesFromGuess);
 
 // Güvenlik: Klavye ile özel karakter girişini engelle
-guessInput.addEventListener("keypress", (e) => {
-    const char = String.fromCharCode(e.which || e.keyCode);
-    if (!/[abcçdefgğhıijklmnoöprsştuüvyzABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ]/.test(char)) {
-      e.preventDefault();
-    }
-  });
+let invalidCharWarningShown = false;
 
+guessInput.addEventListener("keypress", (e) => {
+  const char = String.fromCharCode(e.which || e.keyCode);
+
+  // Sadece Türkçe harf kontrolü
+  if (!/[abcçdefgğhıijklmnoöprsştuüvyzABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ]/.test(char)) {
+    e.preventDefault();
+
+    // Uyarıyı her tuşta spam olmasın diye kısa süreliğe bir kez göster
+    if (!invalidCharWarningShown) {
+      invalidCharWarningShown = true;
+      alert("Sadece Türkçe harf kullanabilirsin (a–z ve ç, ğ, ı, i, ö, ş, ü).");
+      setTimeout(() => {
+        invalidCharWarningShown = false;
+      }, 1000); // 1 saniye içinde tekrar aynı uyarıyı gösterme
+    }
+  }
+});
 // --- Wordle mantığı ---
 
 function matches(word) {

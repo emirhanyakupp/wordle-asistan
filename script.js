@@ -365,6 +365,20 @@ function updateResults(lastFeedback) {
     summaryEl.textContent = `Tahmin tamamen gri ve ${candidates.length} aday kelime var. Örnek ilk ${ORNEK_SAYISI} gösteriliyor:`;
     const slice = candidates.slice(0, ORNEK_SAYISI);
     for (const w of slice) {
+        const li = document.createElement("li");
+        li.textContent = w;
+        
+        // YENİ EKLENEN KISIM: Kelimeye tıklama özelliği
+        li.addEventListener("click", () => {
+          guessInput.value = w; // Tıklanan kelimeyi inputa yaz
+          renderTilesFromGuess(); // Renk seçeceğimiz kutucukları oluştur
+          
+          // İsteğe bağlı: Mobilde uzun bir listeden tıkladığında ekranı yukarı, inputun olduğu yere kaydırır
+          document.querySelector(".container").scrollIntoView({ behavior: "smooth" });
+        });
+  
+        wordListEl.appendChild(li);
+      } for (const w of slice) {
       const li = document.createElement("li");
       li.textContent = w;
       wordListEl.appendChild(li);
@@ -373,10 +387,20 @@ function updateResults(lastFeedback) {
     const maxShow = 200;
     const slice = candidates.slice(0, maxShow);
     for (const w of slice) {
-      const li = document.createElement("li");
-      li.textContent = w;
-      wordListEl.appendChild(li);
-    }
+        const li = document.createElement("li");
+        li.textContent = w;
+        
+        // YENİ EKLENEN KISIM: Kelimeye tıklama özelliği
+        li.addEventListener("click", () => {
+          guessInput.value = w; // Tıklanan kelimeyi inputa yaz
+          renderTilesFromGuess(); // Renk seçeceğimiz kutucukları oluştur
+          
+          // İsteğe bağlı: Mobilde uzun bir listeden tıkladığında ekranı yukarı, inputun olduğu yere kaydırır
+          document.querySelector(".container").scrollIntoView({ behavior: "smooth" });
+        });
+  
+        wordListEl.appendChild(li);
+      }
 
     if (candidates.length > maxShow) {
       summaryEl.textContent = `Toplam ${candidates.length} kelime, ilk ${maxShow} gösteriliyor.`;

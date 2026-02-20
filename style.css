@@ -135,6 +135,7 @@ body {
   letter-spacing: 0.06em;
   font-weight: 600;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
   }
   #word-list li:hover {
   background: rgba(55, 65, 81, 1);
